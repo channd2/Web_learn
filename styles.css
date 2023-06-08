@@ -1,0 +1,13 @@
+#myButton {
+    color: white;
+    background-color: blue;
+}
+
+#myButton.red {
+    background-color: red;
+}
+
+#textDisplay {
+    display: inline-block;
+    margin-left: 10px;
+}
