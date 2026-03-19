@@ -23,7 +23,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const { id } = await params;
     const body = await req.json();
-    const pm = await updatePM(id, body);
+    const pm = await updatePM(id, {
+      ...body,
+      frequency_days: body.frequency_days ? parseInt(body.frequency_days) : undefined,
+      frequency_km: body.frequency_km ? parseFloat(body.frequency_km) : undefined,
+      last_completed_date: body.last_completed_date || undefined,
+      last_completed_km: body.last_completed_km ? parseFloat(body.last_completed_km) : undefined,
+    });
     return NextResponse.json(pm);
   } catch (e: unknown) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
