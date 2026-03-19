@@ -266,6 +266,21 @@ export async function deleteWOPart(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function saveWODocument(doc: Omit<WODocument, 'id' | 'created_at'>): Promise<WODocument> {
+  const { data, error } = await db()
+    .from('wo_documents')
+    .insert(doc)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteWODocument(id: string): Promise<void> {
+  const { error } = await db().from('wo_documents').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export async function updateWOTotalCost(woId: string): Promise<void> {
   const { data: parts } = await db()
     .from('wo_parts')

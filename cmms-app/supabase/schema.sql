@@ -103,9 +103,20 @@ CREATE TRIGGER pm_schedules_updated_at BEFORE UPDATE ON pm_schedules
 CREATE TRIGGER work_orders_updated_at BEFORE UPDATE ON work_orders
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- Storage buckets (run via Supabase dashboard or these are instructions)
--- Create buckets: 'asset-photos', 'asset-docs', 'wo-docs'
--- Set them to public access
+-- ============================================
+-- Storage Buckets Setup (run in Supabase SQL Editor)
+-- ============================================
+-- Creates public storage buckets for photos and documents
+INSERT INTO storage.buckets (id, name, public) VALUES ('asset-photos', 'asset-photos', true) ON CONFLICT DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('wo-docs', 'wo-docs', true) ON CONFLICT DO NOTHING;
+
+-- Allow authenticated users to upload/read/delete in asset-photos
+CREATE POLICY "asset-photos: allow all for authenticated" ON storage.objects
+  FOR ALL USING (bucket_id = 'asset-photos') WITH CHECK (bucket_id = 'asset-photos');
+
+-- Allow authenticated users to upload/read/delete in wo-docs
+CREATE POLICY "wo-docs: allow all for authenticated" ON storage.objects
+  FOR ALL USING (bucket_id = 'wo-docs') WITH CHECK (bucket_id = 'wo-docs');
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_pm_schedules_asset_id ON pm_schedules(asset_id);

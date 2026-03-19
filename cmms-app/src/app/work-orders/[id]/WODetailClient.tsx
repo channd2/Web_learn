@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState, use, FormEvent } from 'react';
+import { useEffect, useState, use, FormEvent, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Edit2, Trash2, CheckCircle2, Package,
-  Clock, DollarSign, Plus, X, FileText, Gauge, AlertCircle
+  Clock, DollarSign, Plus, X, Gauge, Camera, ImageIcon
 } from 'lucide-react';
-import { WorkOrder, WOPart } from '@/types';
+import { WorkOrder, WOPart, WODocument } from '@/types';
 import { formatDate, formatDateTime, formatCurrency } from '@/lib/utils';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Modal from '@/components/ui/Modal';
@@ -31,6 +31,11 @@ export default function WODetailClient({ params }: { params: Promise<{ id: strin
   const [showAddPart, setShowAddPart] = useState(false);
   const [partForm, setPartForm] = useState({ part_name: '', quantity: '1', unit_price: '0' });
   const [addingPart, setAddingPart] = useState(false);
+
+  // Photos
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     const res = await fetch(`/api/work-orders/${id}`);
@@ -88,6 +93,35 @@ export default function WODetailClient({ params }: { params: Promise<{ id: strin
       body: JSON.stringify({ partId }),
     });
     load();
+  }
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    setPhotoError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`/api/work-orders/${id}/documents`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      setWO(prev => prev ? { ...prev, documents: [...(prev.documents || []), data] } : prev);
+    } catch (e: unknown) {
+      setPhotoError((e as Error).message);
+    } finally {
+      setUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  }
+
+  async function handleDeletePhoto(doc: WODocument) {
+    await fetch(`/api/work-orders/${id}/documents`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ docId: doc.id }),
+    });
+    setWO(prev => prev ? { ...prev, documents: (prev.documents || []).filter(d => d.id !== doc.id) } : prev);
   }
 
   async function handleStatusChange(newStatus: string) {
@@ -316,6 +350,63 @@ export default function WODetailClient({ params }: { params: Promise<{ id: strin
             </>
           )}
         </div>
+      </div>
+
+      {/* Photos Section */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-50">
+          <div className="flex items-center gap-2">
+            <ImageIcon size={18} className="text-slate-600" />
+            <h3 className="font-semibold text-slate-800">Photos ({(wo.documents || []).length})</h3>
+          </div>
+          <button
+            type="button"
+            onClick={() => photoInputRef.current?.click()}
+            disabled={uploadingPhoto}
+            className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+          >
+            <Camera size={14} />
+            {uploadingPhoto ? 'Uploading...' : 'Add Photo'}
+          </button>
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
+        </div>
+
+        {photoError && (
+          <div className="mx-5 mt-3 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2 text-xs">{photoError}</div>
+        )}
+
+        {!wo.documents || wo.documents.length === 0 ? (
+          <div className="py-8 text-center text-slate-400 text-sm">
+            <Camera size={32} className="mx-auto text-slate-200 mb-2" />
+            No photos yet. Click &ldquo;Add Photo&rdquo; to upload.
+          </div>
+        ) : (
+          <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+            {wo.documents.map((doc: WODocument) => (
+              <div key={doc.id} className="relative group aspect-square">
+                <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={doc.file_url}
+                    alt={doc.file_name}
+                    className="w-full h-full object-cover rounded-xl border border-slate-100"
+                  />
+                </a>
+                <button
+                  onClick={() => handleDeletePhoto(doc)}
+                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Modals */}

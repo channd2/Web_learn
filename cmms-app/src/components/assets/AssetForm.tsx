@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useRef } from 'react';
 import { Asset } from '@/types';
 import { generateAssetNumber } from '@/lib/utils';
+import { Camera, X } from 'lucide-react';
 
 interface Props {
   asset?: Partial<Asset>;
@@ -14,6 +15,9 @@ export default function AssetForm({ asset, onSuccess, onCancel }: Props) {
   const isEdit = !!asset?.id;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string>(asset?.photo_url || '');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     asset_number: asset?.asset_number || generateAssetNumber(),
@@ -27,6 +31,37 @@ export default function AssetForm({ asset, onSuccess, onCancel }: Props) {
 
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }));
+  }
+
+  async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPhotoPreview(URL.createObjectURL(file));
+    setUploading(true);
+    setError('');
+
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('bucket', 'asset-photos');
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      set('photo_url', data.url);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+      setPhotoPreview(asset?.photo_url || '');
+      set('photo_url', asset?.photo_url || '');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleRemovePhoto() {
+    setPhotoPreview('');
+    set('photo_url', '');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -130,15 +165,49 @@ export default function AssetForm({ asset, onSuccess, onCancel }: Props) {
         </div>
       </div>
 
+      {/* Photo Upload */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Photo URL</label>
+        <label className="block text-sm font-medium text-slate-700 mb-2">Asset Photo</label>
+        {photoPreview ? (
+          <div className="relative inline-block">
+            <img
+              src={photoPreview}
+              alt="Preview"
+              className="w-32 h-32 rounded-xl object-cover border border-slate-200"
+            />
+            {uploading ? (
+              <div className="absolute inset-0 bg-white/70 rounded-xl flex items-center justify-center">
+                <span className="text-xs text-slate-600 font-medium">Uploading...</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleRemovePhoto}
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition"
+          >
+            <Camera size={18} />
+            {uploading ? 'Uploading...' : 'Upload Photo'}
+          </button>
+        )}
         <input
-          type="url"
-          value={form.photo_url}
-          onChange={e => set('photo_url', e.target.value)}
-          placeholder="https://... (link to image)"
-          className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+          onChange={handlePhotoSelect}
+          className="hidden"
         />
+        <p className="text-xs text-slate-400 mt-1.5">JPEG, PNG, WebP or GIF · Max 5MB</p>
       </div>
 
       <div className="flex gap-3 pt-2">
@@ -152,7 +221,7 @@ export default function AssetForm({ asset, onSuccess, onCancel }: Props) {
         </button>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || uploading}
           className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 rounded-xl transition"
         >
           {loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Asset'}
