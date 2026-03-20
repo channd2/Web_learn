@@ -131,9 +131,10 @@ export async function createPM(data: Partial<PMSchedule>): Promise<PMSchedule> {
 }
 
 export async function updatePM(id: string, data: Partial<PMSchedule>): Promise<PMSchedule> {
+  const withDates = calcNextDueDates(data);
   const { data: updated, error } = await db()
     .from('pm_schedules')
-    .update({ ...data, updated_at: new Date().toISOString() })
+    .update({ ...withDates, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select('*, asset:assets(id, asset_number, name, meter_reading)')
     .single();
@@ -161,6 +162,37 @@ function calcNextDueDates(pm: Partial<PMSchedule>): Partial<PMSchedule> {
   }
 
   return result;
+}
+
+export async function refreshAllPMDueDates(): Promise<{ updated: number }> {
+  const { data, error } = await db()
+    .from('pm_schedules')
+    .select('*')
+    .eq('status', 'ACTIVE');
+
+  if (error) throw error;
+
+  const pms: PMSchedule[] = data || [];
+  let updated = 0;
+
+  await Promise.all(
+    pms.map(async (pm) => {
+      const recalc = calcNextDueDates(pm);
+      const changed =
+        recalc.next_due_date !== pm.next_due_date ||
+        recalc.next_due_km !== pm.next_due_km;
+
+      if (changed) {
+        await db()
+          .from('pm_schedules')
+          .update({ next_due_date: recalc.next_due_date, next_due_km: recalc.next_due_km, updated_at: new Date().toISOString() })
+          .eq('id', pm.id);
+        updated++;
+      }
+    })
+  );
+
+  return { updated };
 }
 
 export async function resetPMAfterCompletion(
