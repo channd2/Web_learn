@@ -10,24 +10,30 @@ function db() {
 // ============ ASSETS ============
 
 export async function getAssets(): Promise<Asset[]> {
-  const { data, error } = await db()
-    .from('assets')
-    .select('*')
-    .order('created_at', { ascending: false });
+  const [{ data, error }, { data: woCosts }] = await Promise.all([
+    db().from('assets').select('*').order('created_at', { ascending: false }),
+    db().from('work_orders').select('asset_id, total_cost').eq('status', 'COMP'),
+  ]);
 
   if (error) throw error;
-  return (data || []).map(enrichAsset);
+
+  const costByAsset = new Map<string, number>();
+  for (const wo of (woCosts || [])) {
+    costByAsset.set(wo.asset_id, (costByAsset.get(wo.asset_id) || 0) + (wo.total_cost || 0));
+  }
+
+  return (data || []).map(a => enrichAsset({ ...a, total_maintenance_cost: costByAsset.get(a.id) || 0 }));
 }
 
 export async function getAssetById(id: string): Promise<Asset | null> {
-  const { data, error } = await db()
-    .from('assets')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const [{ data, error }, { data: woCosts }] = await Promise.all([
+    db().from('assets').select('*').eq('id', id).single(),
+    db().from('work_orders').select('total_cost').eq('asset_id', id).eq('status', 'COMP'),
+  ]);
 
   if (error) return null;
-  return enrichAsset(data);
+  const total_maintenance_cost = (woCosts || []).reduce((sum, wo) => sum + (wo.total_cost || 0), 0);
+  return enrichAsset({ ...data, total_maintenance_cost });
 }
 
 function enrichAsset(a: Asset): Asset {

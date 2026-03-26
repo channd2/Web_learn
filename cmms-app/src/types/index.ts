@@ -20,6 +20,7 @@ export interface Asset {
   equipment_age_years?: number;
   pm_count?: number;
   wo_count?: number;
+  total_maintenance_cost?: number;
 }
 
 export interface AssetDocument {

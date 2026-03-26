@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Package, Gauge, Calendar, Edit2, Trash2,
-  Plus, ClipboardList, Wrench, FileText, ExternalLink
+  Plus, ClipboardList, Wrench, FileText, ExternalLink, DollarSign
 } from 'lucide-react';
 import { Asset, PMSchedule, WorkOrder, AssetDocument } from '@/types';
 import { formatDate, formatKm, calcEquipmentAge, formatCurrency } from '@/lib/utils';
@@ -109,7 +109,7 @@ export default function AssetDetailClient({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Key metrics */}
-        <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-slate-50">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-5 border-t border-slate-50">
           <div>
             <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
               <Gauge size={12} /> Meter Reading
@@ -127,6 +127,12 @@ export default function AssetDetailClient({ params }: { params: Promise<{ id: st
               <Calendar size={12} /> Equipment Age
             </div>
             <div className="text-sm font-semibold text-slate-700">{calcEquipmentAge(asset.date_of_birth)}</div>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+              <DollarSign size={12} /> Total Maintenance Cost
+            </div>
+            <div className="text-lg font-bold text-slate-800">{formatCurrency(asset.total_maintenance_cost ?? 0)}</div>
           </div>
         </div>
       </div>

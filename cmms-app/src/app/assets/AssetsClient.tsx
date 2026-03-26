@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Package, Gauge, Calendar, ChevronRight, Trash2 } from 'lucide-react';
+import { Plus, Search, Package, Gauge, Calendar, ChevronRight, Trash2, DollarSign } from 'lucide-react';
 import { Asset } from '@/types';
-import { formatDate, formatKm, calcEquipmentAge } from '@/lib/utils';
+import { formatKm, calcEquipmentAge, formatCurrency } from '@/lib/utils';
 import StatusBadge from '@/components/ui/StatusBadge';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import AssetForm from '@/components/assets/AssetForm';
@@ -138,6 +138,10 @@ export default function AssetsClient() {
                         {calcEquipmentAge(asset.date_of_birth)}
                       </div>
                     )}
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                      <DollarSign size={12} className="text-slate-400" />
+                      {formatCurrency(asset.total_maintenance_cost ?? 0)}
+                    </div>
                     <StatusBadge value={asset.status} size="sm" />
                   </div>
                 </div>
