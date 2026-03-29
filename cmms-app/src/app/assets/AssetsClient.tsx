@@ -107,23 +107,27 @@ export default function AssetsClient() {
               <div className="flex items-center gap-4 p-4">
                 {/* Photo or icon */}
                 <div className="shrink-0">
-                  {asset.photo_url ? (
-                    <img
-                      src={asset.photo_url}
-                      alt={asset.name}
-                      className="w-14 h-14 rounded-xl object-cover border border-slate-100"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 rounded-xl bg-indigo-50 flex items-center justify-center">
-                      <Package size={24} className="text-indigo-400" />
-                    </div>
-                  )}
+                  <Link href={`/assets/${asset.id}`}>
+                    {asset.photo_url ? (
+                      <img
+                        src={asset.photo_url}
+                        alt={asset.name}
+                        className="w-14 h-14 rounded-xl object-cover border border-slate-100 hover:opacity-80 transition"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-indigo-50 flex items-center justify-center hover:bg-indigo-100 transition">
+                        <Package size={24} className="text-indigo-400" />
+                      </div>
+                    )}
+                  </Link>
                 </div>
 
                 {/* Details */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-2 flex-wrap">
-                    <span className="font-semibold text-slate-800 text-sm">{asset.name}</span>
+                    <Link href={`/assets/${asset.id}`} className="font-semibold text-slate-800 text-sm hover:text-indigo-600 transition">
+                      {asset.name}
+                    </Link>
                     <span className="text-xs text-slate-400 font-mono">{asset.asset_number}</span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{asset.description || 'No description'}</p>

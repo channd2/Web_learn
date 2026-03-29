@@ -3,8 +3,8 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Edit2, Trash2, Zap, Wrench, Calendar, Gauge, CheckCircle2 } from 'lucide-react';
-import { PMSchedule, WorkOrder } from '@/types';
+import { ArrowLeft, Edit2, Trash2, Zap, Wrench, Calendar, Gauge, CheckCircle2, MoveRight } from 'lucide-react';
+import { PMSchedule, WorkOrder, Asset } from '@/types';
 import { PMStatusLabel } from '@/lib/utils';
 import { formatDate, formatKm, formatDateTime } from '@/lib/utils';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -23,6 +23,10 @@ export default function PMDetailClient({ params }: { params: Promise<{ id: strin
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [generatingWO, setGeneratingWO] = useState(false);
+  const [showReassign, setShowReassign] = useState(false);
+  const [allAssets, setAllAssets] = useState<Asset[]>([]);
+  const [reassignAssetId, setReassignAssetId] = useState('');
+  const [reassigning, setReassigning] = useState(false);
 
   async function load() {
     const [pmRes, woRes] = await Promise.all([
@@ -40,6 +44,26 @@ export default function PMDetailClient({ params }: { params: Promise<{ id: strin
     setDeleting(true);
     await fetch(`/api/pm/${id}`, { method: 'DELETE' });
     router.push('/pm');
+  }
+
+  async function openReassign() {
+    const res = await fetch('/api/assets');
+    if (res.ok) setAllAssets(await res.json());
+    setReassignAssetId(pm?.asset_id || '');
+    setShowReassign(true);
+  }
+
+  async function handleReassign() {
+    if (!reassignAssetId || reassignAssetId === pm?.asset_id) { setShowReassign(false); return; }
+    setReassigning(true);
+    const res = await fetch(`/api/pm/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ asset_id: reassignAssetId }),
+    });
+    if (res.ok) { await load(); }
+    setReassigning(false);
+    setShowReassign(false);
   }
 
   async function generateWO() {
@@ -67,6 +91,11 @@ export default function PMDetailClient({ params }: { params: Promise<{ id: strin
             className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-2 rounded-xl hover:bg-indigo-100 transition"
           >
             <Zap size={15} /> {generatingWO ? 'Creating...' : 'Generate WO'}
+          </button>
+          <button onClick={openReassign}
+            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-3 py-2 rounded-xl hover:bg-slate-50 transition"
+          >
+            <MoveRight size={15} /> Reassign
           </button>
           <button onClick={() => setShowEdit(true)}
             className="flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 px-3 py-2 rounded-xl hover:bg-slate-50 transition"
@@ -181,6 +210,36 @@ export default function PMDetailClient({ params }: { params: Promise<{ id: strin
           onSuccess={(updated) => { setPM(updated); setShowEdit(false); }}
           onCancel={() => setShowEdit(false)}
         />
+      </Modal>
+
+      <Modal open={showReassign} onClose={() => setShowReassign(false)} title="Reassign PM to Another Asset" size="sm">
+        <div className="space-y-4">
+          <p className="text-sm text-slate-500">Select the asset to move this PM to. All schedule data and calculations stay the same.</p>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Asset</label>
+            <select
+              value={reassignAssetId}
+              onChange={e => setReassignAssetId(e.target.value)}
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {allAssets.map(a => (
+                <option key={a.id} value={a.id}>{a.name} ({a.asset_number})</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button onClick={() => setShowReassign(false)} disabled={reassigning}
+              className="flex-1 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
+            >
+              Cancel
+            </button>
+            <button onClick={handleReassign} disabled={reassigning}
+              className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 rounded-xl transition"
+            >
+              {reassigning ? 'Moving...' : 'Confirm Reassign'}
+            </button>
+          </div>
+        </div>
       </Modal>
 
       <ConfirmDialog
