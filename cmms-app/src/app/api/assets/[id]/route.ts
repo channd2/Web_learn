@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const { id } = await params;
     const body = await req.json();
-    const asset = await updateAsset(id, {
+    const updateData: Record<string, unknown> = {
       asset_number: body.asset_number,
       name: body.name,
       description: body.description || null,
@@ -33,8 +33,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       meter_reading: body.meter_reading != null ? parseFloat(body.meter_reading) : undefined,
       status: body.status,
       photo_url: body.photo_url || null,
-      capex: body.capex !== '' && body.capex != null ? parseFloat(body.capex) : null,
-    });
+    };
+    if (body.capex !== '' && body.capex != null) {
+      updateData.capex = parseFloat(body.capex);
+    }
+    const asset = await updateAsset(id, updateData);
     return NextResponse.json(asset);
   } catch (e: unknown) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
