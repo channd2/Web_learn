@@ -27,13 +27,8 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const supabase = supabaseAdmin();
 
-    // Ensure bucket exists
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(b => b.name === bucket);
-    if (!bucketExists) {
-      const { error: bucketError } = await supabase.storage.createBucket(bucket, { public: true });
-      if (bucketError) throw new Error(bucketError.message);
-    }
+    // Always attempt to create bucket; ignore error if it already exists
+    await supabase.storage.createBucket(bucket, { public: true });
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
