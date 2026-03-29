@@ -25,7 +25,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const { id } = await params;
     const body = await req.json();
-    const asset = await updateAsset(id, body);
+    const asset = await updateAsset(id, {
+      ...body,
+      capex: body.capex !== '' && body.capex != null ? parseFloat(body.capex) : null,
+    });
     return NextResponse.json(asset);
   } catch (e: unknown) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });

@@ -27,6 +27,7 @@ export default function AssetForm({ asset, onSuccess, onCancel }: Props) {
     meter_reading: asset?.meter_reading?.toString() || '0',
     status: asset?.status || 'ACTIVE',
     photo_url: asset?.photo_url || '',
+    capex: asset?.capex?.toString() || '',
   });
 
   function set(field: string, value: string) {
@@ -160,6 +161,18 @@ export default function AssetForm({ asset, onSuccess, onCancel }: Props) {
             onChange={e => set('meter_reading', e.target.value)}
             min="0"
             step="0.1"
+            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-slate-700 mb-1">Purchase Price (Capex)</label>
+          <input
+            type="number"
+            value={form.capex}
+            onChange={e => set('capex', e.target.value)}
+            min="0"
+            step="0.01"
+            placeholder="0.00"
             className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>

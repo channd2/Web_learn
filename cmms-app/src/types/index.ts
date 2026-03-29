@@ -14,6 +14,7 @@ export interface Asset {
   meter_reading: number;
   status: AssetStatus;
   photo_url?: string;
+  capex?: number;
   created_at: string;
   updated_at: string;
   // computed

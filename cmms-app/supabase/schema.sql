@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS assets (
   meter_reading DECIMAL(10,2) DEFAULT 0,
   status TEXT DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE', 'RETIRED')),
   photo_url TEXT,
+  capex DECIMAL(12,2),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
