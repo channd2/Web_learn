@@ -13,8 +13,8 @@ export interface Asset {
   date_of_birth?: string;
   meter_reading: number;
   status: AssetStatus;
-  photo_url?: string;
-  capex?: number;
+  photo_url?: string | null;
+  capex?: number | null;
   created_at: string;
   updated_at: string;
   // computed

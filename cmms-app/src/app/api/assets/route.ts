@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       meter_reading: parseFloat(body.meter_reading) || 0,
       status: body.status || 'ACTIVE',
       photo_url: body.photo_url || null,
-      capex: body.capex !== '' && body.capex != null ? parseFloat(body.capex) : undefined,
+      capex: body.capex !== '' && body.capex != null ? parseFloat(body.capex) : null,
     });
     return NextResponse.json(asset, { status: 201 });
   } catch (e: unknown) {

@@ -26,8 +26,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params;
     const body = await req.json();
     const asset = await updateAsset(id, {
-      ...body,
-      capex: body.capex !== '' && body.capex != null ? parseFloat(body.capex) : undefined,
+      asset_number: body.asset_number,
+      name: body.name,
+      description: body.description || null,
+      date_of_birth: body.date_of_birth || null,
+      meter_reading: body.meter_reading != null ? parseFloat(body.meter_reading) : undefined,
+      status: body.status,
+      photo_url: body.photo_url || null,
+      capex: body.capex !== '' && body.capex != null ? parseFloat(body.capex) : null,
     });
     return NextResponse.json(asset);
   } catch (e: unknown) {
