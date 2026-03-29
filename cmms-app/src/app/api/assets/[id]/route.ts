@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json();
     const asset = await updateAsset(id, {
       ...body,
-      capex: body.capex !== '' && body.capex != null ? parseFloat(body.capex) : null,
+      capex: body.capex !== '' && body.capex != null ? parseFloat(body.capex) : undefined,
     });
     return NextResponse.json(asset);
   } catch (e: unknown) {
