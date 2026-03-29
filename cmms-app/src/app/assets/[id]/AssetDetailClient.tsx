@@ -134,14 +134,14 @@ export default function AssetDetailClient({ params }: { params: Promise<{ id: st
             </div>
             <div className="text-lg font-bold text-slate-800">{formatCurrency(asset.total_maintenance_cost ?? 0)}</div>
           </div>
-          {asset.capex != null && (
-            <div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
-                <DollarSign size={12} /> Purchase Price (Capex)
-              </div>
-              <div className="text-lg font-bold text-slate-800">{formatCurrency(asset.capex)}</div>
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+              <DollarSign size={12} /> Purchase Price (Capex)
             </div>
-          )}
+            <div className="text-lg font-bold text-slate-800">
+              {asset.capex != null ? formatCurrency(asset.capex) : '—'}
+            </div>
+          </div>
         </div>
       </div>
 

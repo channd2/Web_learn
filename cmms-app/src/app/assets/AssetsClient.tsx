@@ -142,15 +142,13 @@ export default function AssetsClient() {
                         {calcEquipmentAge(asset.date_of_birth)}
                       </div>
                     )}
-                    {asset.capex != null && (
-                      <div className="flex items-center gap-1 text-xs text-slate-500">
-                        <DollarSign size={12} className="text-slate-400" />
-                        <span className="text-slate-400">Capex:</span> {formatCurrency(asset.capex)}
-                      </div>
-                    )}
                     <div className="flex items-center gap-1 text-xs text-slate-500">
                       <DollarSign size={12} className="text-slate-400" />
-                      {formatCurrency(asset.total_maintenance_cost ?? 0)}
+                      <span className="text-slate-400">Capex:</span> {asset.capex != null ? formatCurrency(asset.capex) : '—'}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                      <DollarSign size={12} className="text-slate-400" />
+                      <span className="text-slate-400">Maint:</span> {formatCurrency(asset.total_maintenance_cost ?? 0)}
                     </div>
                     <StatusBadge value={asset.status} size="sm" />
                   </div>
