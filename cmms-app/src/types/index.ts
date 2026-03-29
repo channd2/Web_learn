@@ -55,6 +55,7 @@ export interface PMSchedule {
   km_until_due?: number;
   percent_remaining?: number;
   pm_status_label?: 'OVERDUE' | 'DUE_SOON' | 'UPCOMING' | 'OK';
+  total_pm_cost?: number;
 }
 
 export interface WorkOrder {

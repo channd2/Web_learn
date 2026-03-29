@@ -3,10 +3,10 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Edit2, Trash2, Zap, Wrench, Calendar, Gauge, CheckCircle2, MoveRight } from 'lucide-react';
+import { ArrowLeft, Edit2, Trash2, Zap, Wrench, Calendar, Gauge, CheckCircle2, MoveRight, DollarSign } from 'lucide-react';
 import { PMSchedule, WorkOrder, Asset } from '@/types';
 import { PMStatusLabel } from '@/lib/utils';
-import { formatDate, formatKm, formatDateTime } from '@/lib/utils';
+import { formatDate, formatKm, formatDateTime, formatCurrency } from '@/lib/utils';
 import StatusBadge from '@/components/ui/StatusBadge';
 import ProgressBar from '@/components/ui/ProgressBar';
 import Modal from '@/components/ui/Modal';
@@ -173,6 +173,10 @@ export default function PMDetailClient({ params }: { params: Promise<{ id: strin
             {pm.next_due_km && (
               <div className="text-xs text-slate-500 mt-0.5">{formatKm(pm.next_due_km)}</div>
             )}
+          </div>
+          <div className="bg-slate-50 rounded-xl p-3">
+            <div className="flex items-center gap-1 text-xs text-slate-400 mb-1"><DollarSign size={11} /> Total PM Cost</div>
+            <div className="text-sm font-semibold text-slate-700">{formatCurrency(pm.total_pm_cost ?? 0)}</div>
           </div>
         </div>
       </div>

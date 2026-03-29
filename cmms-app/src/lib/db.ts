@@ -95,21 +95,29 @@ export async function getPMSchedules(assetId?: string): Promise<PMSchedule[]> {
 
   if (assetId) query = query.eq('asset_id', assetId);
 
-  const { data, error } = await query;
+  const [{ data, error }, { data: woCosts }] = await Promise.all([
+    query,
+    db().from('work_orders').select('pm_id, total_cost').not('pm_id', 'is', null),
+  ]);
   if (error) throw error;
 
-  return (data || []).map(enrichPM);
+  const costByPM = new Map<string, number>();
+  for (const wo of (woCosts || [])) {
+    if (wo.pm_id) costByPM.set(wo.pm_id, (costByPM.get(wo.pm_id) || 0) + (wo.total_cost || 0));
+  }
+
+  return (data || []).map(pm => enrichPM({ ...pm, total_pm_cost: costByPM.get(pm.id) || 0 }));
 }
 
 export async function getPMById(id: string): Promise<PMSchedule | null> {
-  const { data, error } = await db()
-    .from('pm_schedules')
-    .select('*, asset:assets(id, asset_number, name, meter_reading)')
-    .eq('id', id)
-    .single();
+  const [{ data, error }, { data: woCosts }] = await Promise.all([
+    db().from('pm_schedules').select('*, asset:assets(id, asset_number, name, meter_reading)').eq('id', id).single(),
+    db().from('work_orders').select('total_cost').eq('pm_id', id),
+  ]);
 
   if (error) return null;
-  return enrichPM(data);
+  const total_pm_cost = (woCosts || []).reduce((sum, wo) => sum + (wo.total_cost || 0), 0);
+  return enrichPM({ ...data, total_pm_cost });
 }
 
 function enrichPM(pm: PMSchedule): PMSchedule {

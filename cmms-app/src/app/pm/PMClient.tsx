@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, ClipboardList, ChevronRight, Trash2, Zap } from 'lucide-react';
+import { Plus, Search, ClipboardList, ChevronRight, Trash2, Zap, DollarSign } from 'lucide-react';
 import { PMSchedule } from '@/types';
 import { PMStatusLabel } from '@/lib/utils';
-import { formatDate, formatKm } from '@/lib/utils';
+import { formatDate, formatKm, formatCurrency } from '@/lib/utils';
 import StatusBadge from '@/components/ui/StatusBadge';
 import ProgressBar from '@/components/ui/ProgressBar';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -201,6 +201,10 @@ export default function PMClient() {
                   {pm.next_due_date && (
                     <span>📅 Due: {formatDate(pm.next_due_date)}</span>
                   )}
+                  <span className="flex items-center gap-1">
+                    <DollarSign size={11} className="text-slate-400" />
+                    {formatCurrency(pm.total_pm_cost ?? 0)}
+                  </span>
                 </div>
               </div>
             </div>
