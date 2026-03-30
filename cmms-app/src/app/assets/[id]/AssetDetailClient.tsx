@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Package, Gauge, Calendar, Edit2, Trash2,
-  Plus, ClipboardList, Wrench, FileText, ExternalLink, DollarSign
+  Plus, ClipboardList, Wrench, FileText, ExternalLink, DollarSign, Banknote
 } from 'lucide-react';
 import { Asset, PMSchedule, WorkOrder, AssetDocument } from '@/types';
 import { formatDate, formatKm, calcEquipmentAge, formatCurrency } from '@/lib/utils';
@@ -166,13 +166,18 @@ export default function AssetDetailClient({ params }: { params: Promise<{ id: st
             pms.map(pm => (
               <Link key={pm.id} href={`/pm/${pm.id}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition">
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-800">{pm.name}</div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm font-medium text-slate-800">{pm.name}</div>
+                    <div className="flex items-center gap-1 text-xs font-semibold text-slate-700 shrink-0">
+                      <Banknote size={13} className="text-slate-400" />
+                      {formatCurrency(pm.total_pm_cost ?? 0)}
+                    </div>
+                  </div>
                   <div className="text-xs text-slate-500 mt-0.5">
                     {pm.frequency_type === 'TIME' && `Every ${pm.frequency_days} days`}
                     {pm.frequency_type === 'METER' && `Every ${pm.frequency_km?.toLocaleString()} km`}
                     {pm.frequency_type === 'BOTH' && `Every ${pm.frequency_days} days or ${pm.frequency_km?.toLocaleString()} km`}
                     {pm.days_until_due !== undefined && ` · ${pm.days_until_due >= 0 ? `${pm.days_until_due} days` : `${Math.abs(pm.days_until_due)} days overdue`}`}
-                    {` · ${formatCurrency(pm.total_pm_cost ?? 0)}`}
                   </div>
                   <div className="mt-1.5">
                     <ProgressBar percent={pm.percent_remaining ?? 100} statusLabel={(pm.pm_status_label ?? 'OK') as PMStatusLabel} />
