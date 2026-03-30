@@ -150,7 +150,14 @@ export default function AssetDetailClient({ params }: { params: Promise<{ id: st
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-50">
           <div className="flex items-center gap-2">
             <ClipboardList size={18} className="text-slate-600" />
-            <h3 className="font-semibold text-slate-800">Preventive Maintenance ({pms.length})</h3>
+            <div>
+              <h3 className="font-semibold text-slate-800">Preventive Maintenance ({pms.length})</h3>
+              {pms.length > 0 && (
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Total PM cost: <span className="font-medium text-slate-700">{formatCurrency(pms.reduce((sum, pm) => sum + (pm.total_pm_cost ?? 0), 0))}</span>
+                </p>
+              )}
+            </div>
           </div>
           <button
             onClick={() => setShowNewPM(true)}
