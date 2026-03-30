@@ -172,6 +172,7 @@ export default function AssetDetailClient({ params }: { params: Promise<{ id: st
                     {pm.frequency_type === 'METER' && `Every ${pm.frequency_km?.toLocaleString()} km`}
                     {pm.frequency_type === 'BOTH' && `Every ${pm.frequency_days} days or ${pm.frequency_km?.toLocaleString()} km`}
                     {pm.days_until_due !== undefined && ` · ${pm.days_until_due >= 0 ? `${pm.days_until_due} days` : `${Math.abs(pm.days_until_due)} days overdue`}`}
+                    {` · ${formatCurrency(pm.total_pm_cost ?? 0)}`}
                   </div>
                   <div className="mt-1.5">
                     <ProgressBar percent={pm.percent_remaining ?? 100} statusLabel={(pm.pm_status_label ?? 'OK') as PMStatusLabel} />
