@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, ClipboardList, Wrench, AlertTriangle, Clock, CheckCircle2, DollarSign, TrendingUp } from 'lucide-react';
+import { Package, ClipboardList, Wrench, AlertTriangle, CheckCircle2, DollarSign, TrendingUp, Hammer } from 'lucide-react';
 import { DashboardStats, PMSchedule, WorkOrder } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -89,6 +89,14 @@ export default function DashboardClient() {
       color: 'bg-emerald-500',
       href: '/work-orders',
     },
+    {
+      label: 'Tool Capex',
+      value: formatCurrency(stats?.total_tool_capex ?? 0),
+      sub: `${stats?.total_tools ?? 0} tools`,
+      icon: Hammer,
+      color: 'bg-amber-500',
+      href: '/tools',
+    },
   ];
 
   return (
@@ -100,7 +108,7 @@ export default function DashboardClient() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {statCards.map((card) => (
           <Link key={card.label} href={card.href}
             className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition group"

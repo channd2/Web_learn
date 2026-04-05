@@ -100,6 +100,21 @@ export interface WODocument {
   created_at: string;
 }
 
+export type ToolStatus = 'ACTIVE' | 'INACTIVE' | 'RETIRED';
+
+export interface Tool {
+  id: string;
+  tool_number: string;
+  name: string;
+  description?: string;
+  purchase_date?: string;
+  status: ToolStatus;
+  photo_url?: string | null;
+  capex?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface DashboardStats {
   total_assets: number;
   active_assets: number;
@@ -109,4 +124,6 @@ export interface DashboardStats {
   in_progress_wo: number;
   completed_wo_this_month: number;
   total_cost_this_month: number;
+  total_tool_capex: number;
+  total_tools: number;
 }

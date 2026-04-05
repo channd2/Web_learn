@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Package, ClipboardList, Wrench, Menu, X,
-  LogOut, ChevronRight
+  LogOut, ChevronRight, Hammer
 } from 'lucide-react';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/assets', icon: Package, label: 'Assets' },
+  { href: '/tools', icon: Hammer, label: 'Tools' },
   { href: '/pm', icon: ClipboardList, label: 'Preventive Maintenance' },
   { href: '/work-orders', icon: Wrench, label: 'Work Orders' },
 ];

@@ -1,5 +1,5 @@
 import { supabaseAdmin } from './supabase';
-import { Asset, PMSchedule, WorkOrder, WOPart, WODocument, AssetDocument } from '@/types';
+import { Asset, PMSchedule, WorkOrder, WOPart, WODocument, AssetDocument, Tool } from '@/types';
 import { calcPMProgress } from './utils';
 import { addDays } from 'date-fns';
 
@@ -337,13 +337,50 @@ export async function updateWOTotalCost(woId: string): Promise<void> {
   await db().from('work_orders').update({ total_cost: total }).eq('id', woId);
 }
 
+// ============ TOOLS ============
+
+export async function getTools(): Promise<Tool[]> {
+  const { data, error } = await db().from('tools').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getToolById(id: string): Promise<Tool | null> {
+  const { data, error } = await db().from('tools').select('*').eq('id', id).single();
+  if (error) return null;
+  return data;
+}
+
+export async function createTool(data: Partial<Tool>): Promise<Tool> {
+  const { data: created, error } = await db().from('tools').insert(data).select().single();
+  if (error) throw error;
+  return created;
+}
+
+export async function updateTool(id: string, data: Partial<Tool>): Promise<Tool> {
+  const { data: updated, error } = await db()
+    .from('tools')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return updated;
+}
+
+export async function deleteTool(id: string): Promise<void> {
+  const { error } = await db().from('tools').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // ============ DASHBOARD ============
 
 export async function getDashboardStats() {
-  const [assets, pms, wos] = await Promise.all([
+  const [assets, pms, wos, tools] = await Promise.all([
     db().from('assets').select('status'),
     db().from('pm_schedules').select('*, asset:assets(meter_reading)').eq('status', 'ACTIVE'),
     db().from('work_orders').select('status, total_cost, created_at'),
+    db().from('tools').select('capex'),
   ]);
 
   const now = new Date();
@@ -352,6 +389,7 @@ export async function getDashboardStats() {
   const assetList = assets.data || [];
   const pmList = (pms.data || []).map(enrichPM);
   const woList = wos.data || [];
+  const toolList = tools.data || [];
 
   return {
     total_assets: assetList.length,
@@ -366,5 +404,7 @@ export async function getDashboardStats() {
     total_cost_this_month: woList
       .filter((w: { status: string; created_at: string }) => w.status === 'COMP' && new Date(w.created_at) >= startOfMonth)
       .reduce((sum: number, w: { total_cost: number }) => sum + (w.total_cost || 0), 0),
+    total_tools: toolList.length,
+    total_tool_capex: toolList.reduce((sum: number, t: { capex: number | null }) => sum + (t.capex || 0), 0),
   };
 }
